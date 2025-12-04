@@ -19,6 +19,7 @@ public abstract partial class BaseState : Node
 	public bool IsActive => this.StateMachine.ActiveState == this;
 	public bool IsPreviousActiveState => this.StateMachine.PreviousState == this;
 	public TimeSpan ActiveDuration => this.IsActive ? this.StateMachine.ActiveStateDuration : TimeSpan.Zero;
+	public double ActiveDurationMs => this.StateMachine.ActiveStateDuration.TotalMilliseconds;
 
 	// -----------------------------------------------------------------------------------------------------------------
 	// SIGNALS
@@ -68,4 +69,11 @@ public abstract partial class BaseState : Node
 	public virtual void _ExitState() { }
 	public virtual void _ProcessActive(double delta) { }
 	public virtual void _PhysicsProcessActive(double delta) { }
+
+	// -----------------------------------------------------------------------------------------------------------------
+	// METHODS
+	// -----------------------------------------------------------------------------------------------------------------
+
+	public void Transition(string? newStateName, Variant? data = null) => this.StateMachine.QueueTransition(newStateName, data);
+	public void Transition(Node? newState, Variant? data = null) => this.StateMachine.QueueTransition(newState, data);
 }
