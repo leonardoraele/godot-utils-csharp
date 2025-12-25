@@ -38,6 +38,9 @@ public partial class StateMachine<T> where T : StateMachine<T>.IState
 			this.IsCanceled = true;
 			this.Canceled?.Invoke();
 		}
+		public override string ToString()
+			=> $"{nameof(Raele.GodotUtils.StateMachine)}.{nameof(Transition)} {new { EnterState, ExitState, Data = Json.Stringify(this.Data) }}"
+				+ (this.IsCanceled ? " (canceled)" : "");
 	}
 
 	// -----------------------------------------------------------------------------------------------------------------
