@@ -55,5 +55,34 @@ public static class IEnumerableExtensionMethods
 			index = self.FindIndex(predicate);
 			return index != -1;
 		}
+
+		public string JoinIntoString(string separator) => string.Join(separator, self);
+
+		public void Deconstruct(out T? el1)
+		{
+			using IEnumerator<T> enumerator = self.GetEnumerator();
+			el1 = enumerator.MoveNext() ? enumerator.Current : default;
+		}
+		public void Deconstruct(out T? el1, out T? el2)
+		{
+			using IEnumerator<T> enumerator = self.GetEnumerator();
+			el1 = enumerator.MoveNext() ? enumerator.Current : default;
+			el2 = enumerator.MoveNext() ? enumerator.Current : default;
+		}
+		public void Deconstruct(out T? el1, out T? el2, out T? el3)
+		{
+			using IEnumerator<T> enumerator = self.GetEnumerator();
+			el1 = enumerator.MoveNext() ? enumerator.Current : default;
+			el2 = enumerator.MoveNext() ? enumerator.Current : default;
+			el3 = enumerator.MoveNext() ? enumerator.Current : default;
+		}
+		public void Deconstruct(out T? el1, out T? el2, out T? el3, out T? el4)
+		{
+			using IEnumerator<T> enumerator = self.GetEnumerator();
+			el1 = enumerator.MoveNext() ? enumerator.Current : default;
+			el2 = enumerator.MoveNext() ? enumerator.Current : default;
+			el3 = enumerator.MoveNext() ? enumerator.Current : default;
+			el4 = enumerator.MoveNext() ? enumerator.Current : default;
+		}
 	}
 }
