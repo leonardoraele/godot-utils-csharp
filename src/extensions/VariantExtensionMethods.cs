@@ -124,4 +124,9 @@ public static class VariantExtensionMethods
 			};
 		}
 	}
+
+	extension <[MustBeVariant] T>(T value)
+	{
+		public Variant ToVariant() => Variant.From(value);
+	}
 }
