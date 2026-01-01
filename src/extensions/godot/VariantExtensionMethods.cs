@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -123,10 +124,95 @@ public static class VariantExtensionMethods
 					return input;
 			};
 		}
+
+		public static Variant.Type Typeof<[MustBeVariant] T>()
+			=> Typeof(typeof(T));
+		public static Variant.Type Typeof(Type type)
+			=> type == typeof(bool) ? Variant.Type.Bool
+			: type == typeof(char) ? Variant.Type.String
+			: type == typeof(sbyte) ? Variant.Type.Int
+			: type == typeof(short) ? Variant.Type.Int
+			: type == typeof(int) ? Variant.Type.Int
+			: type == typeof(long) ? Variant.Type.Int
+			: type == typeof(byte) ? Variant.Type.Int
+			: type == typeof(ushort) ? Variant.Type.Int
+			: type == typeof(uint) ? Variant.Type.Int
+			: type == typeof(ulong) ? Variant.Type.Int
+			: type == typeof(float) ? Variant.Type.Float
+			: type == typeof(double) ? Variant.Type.Float
+			: type == typeof(Vector2) ? Variant.Type.Vector2
+			: type == typeof(Vector2I) ? Variant.Type.Vector2I
+			: type == typeof(Rect2) ? Variant.Type.Rect2
+			: type == typeof(Rect2I) ? Variant.Type.Rect2I
+			: type == typeof(Transform2D) ? Variant.Type.Transform2D
+			: type == typeof(Vector3) ? Variant.Type.Vector3
+			: type == typeof(Vector3I) ? Variant.Type.Vector3I
+			: type == typeof(Basis) ? Variant.Type.Basis
+			: type == typeof(Quaternion) ? Variant.Type.Quaternion
+			: type == typeof(Transform3D) ? Variant.Type.Transform3D
+			: type == typeof(Projection) ? Variant.Type.Projection
+			: type == typeof(Vector4) ? Variant.Type.Vector4
+			: type == typeof(Vector4I) ? Variant.Type.Vector4I
+			: type == typeof(Aabb) ? Variant.Type.Aabb
+			: type == typeof(Color) ? Variant.Type.Color
+			: type == typeof(Plane) ? Variant.Type.Plane
+			: type == typeof(Callable) ? Variant.Type.Callable
+			: type == typeof(Signal) ? Variant.Type.Signal
+			: type == typeof(string) ? Variant.Type.String
+			: type == typeof(byte[]) ? Variant.Type.PackedByteArray
+			: type == typeof(int[]) ? Variant.Type.PackedInt32Array
+			: type == typeof(long[]) ? Variant.Type.PackedInt64Array
+			: type == typeof(float[]) ? Variant.Type.PackedFloat32Array
+			: type == typeof(double[]) ? Variant.Type.PackedFloat64Array
+			: type == typeof(string[]) ? Variant.Type.PackedStringArray
+			: type == typeof(Vector2[]) ? Variant.Type.PackedVector2Array
+			: type == typeof(Vector3[]) ? Variant.Type.PackedVector3Array
+			: type == typeof(Vector4[]) ? Variant.Type.PackedVector4Array
+			: type == typeof(Color[]) ? Variant.Type.PackedColorArray
+			: type == typeof(StringName[]) ? Variant.Type.PackedStringArray
+			: type == typeof(NodePath[]) ? Variant.Type.PackedStringArray
+			: type == typeof(Rid[]) ? Variant.Type.Array
+			: type == typeof(StringName) ? Variant.Type.StringName
+			: type == typeof(NodePath) ? Variant.Type.NodePath
+			: type == typeof(Rid) ? Variant.Type.Rid
+			: type == typeof(Godot.Collections.Dictionary) ? Variant.Type.Dictionary
+			: type == typeof(Godot.Collections.Array) ? Variant.Type.Array
+			: type == typeof(Variant) ? Variant.Type.Nil
+			: typeof(GodotObject).IsAssignableFrom(type) ? Variant.Type.Object
+			: type.IsValueType && typeof(Enum).IsAssignableFrom(type) ? Variant.Type.Int
+			: Variant.Type.Nil;
 	}
 
 	extension <[MustBeVariant] T>(T value)
 	{
 		public Variant ToVariant() => Variant.From(value);
+	}
+
+	extension<[MustBeVariant] T>(IEnumerable<T> sequence)
+	{
+		public Godot.Collections.Array ToGodotArray() => [..sequence.Select(item => Variant.From(item))];
+		public Godot.Collections.Array<T> ToGodotArrayT() => [..sequence];
+	}
+
+	extension<[MustBeVariant] TKey, [MustBeVariant] TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull
+	{
+		public Godot.Collections.Dictionary ToGodotDictionary()
+		{
+			Godot.Collections.Dictionary godotDict = new();
+			foreach (KeyValuePair<TKey, TValue> pair in dictionary)
+			{
+				godotDict[Variant.From(pair.Key)] = Variant.From(pair.Value);
+			}
+			return godotDict;
+		}
+		public Godot.Collections.Dictionary<TKey, TValue> ToGodotDictionaryKV()
+		{
+			Godot.Collections.Dictionary<TKey, TValue> godotDict = new();
+			foreach (KeyValuePair<TKey, TValue> pair in dictionary)
+			{
+				godotDict[pair.Key] = pair.Value;
+			}
+			return godotDict;
+		}
 	}
 }

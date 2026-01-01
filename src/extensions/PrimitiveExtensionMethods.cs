@@ -10,7 +10,6 @@ public static class PrimitiveExtensionMethods
 			=> self.CompareTo(min) < 0 ? min
 				: self.CompareTo(max) > 0 ? max
 				: self;
-
 		public bool IsBetween(T min, T max, bool inclusive = true)
 			=> inclusive
 				? self.CompareTo(min) >= 0 && self.CompareTo(max) <= 0

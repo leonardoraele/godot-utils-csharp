@@ -1,7 +1,17 @@
+using System.Linq;
 using Godot;
+
+namespace Raele.GodotUtils.Adapters;
 
 public interface ISignalEmitter
 {
+	//------------------------------------------------------------------------------------------------------------------
+	// ABSTRACTS
+	//------------------------------------------------------------------------------------------------------------------
+
+	public ISignalEmitter AsSignalEmitter();
+	public GodotObject AsGodotObject();
+
 	/// <summary>
 	/// <para>Returns <see langword="true"/> if the given <paramref name="signal"/> name exists in the object.</para>
 	/// <para><b>Note:</b> In C#, <paramref name="signal"/> must be in snake_case when referring to built-in Godot signals. Prefer using the names exposed in the <c>SignalName</c> class to avoid allocating a new <see cref="Godot.StringName"/> on each call.</para>
@@ -65,4 +75,27 @@ public interface ISignalEmitter
 	/// <para>Returns <see langword="true"/> if the object is blocking its signals from being emitted. See <see cref="Godot.GodotObject.SetBlockSignals(bool)"/>.</para>
 	/// </summary>
 	public bool IsBlockingSignals();
+
+	//------------------------------------------------------------------------------------------------------------------
+	// INTERNAL TYPES
+	//------------------------------------------------------------------------------------------------------------------
+
+	//------------------------------------------------------------------------------------------------------------------
+	// CONCRETES
+	//------------------------------------------------------------------------------------------------------------------
+
+	public ConnectedSignal[] GetSignalConnectionListParsed(StringName signal)
+		=> this.GetSignalConnectionList(signal)
+			.Select(ConnectedSignal.FromDictionary)
+			.ToArray();
+
+	public ConnectedSignal[] GetIncomingConnectionsParsed()
+		=> this.GetIncomingConnections()
+			.Select(ConnectedSignal.FromDictionary)
+			.ToArray();
+
+	public MethodInfo[] GetSignalListParsed()
+		=> this.GetSignalList()
+			.Select(MethodInfo.FromDictionary)
+			.ToArray();
 }
