@@ -1,9 +1,7 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Godot;
 
-namespace Raele.MyProject;
+namespace Raele.GodotUtils;
 
 /// <summary>
 /// Interface for processors that operate over discrete time intervals. For nodes that perform certain processsing over
@@ -14,23 +12,24 @@ public interface IDiscreteIntervalProcessor
 	public bool IsActive { get; }
 	public TimeSpan ActiveTimeSpan { get; }
 
-	public event Action<Variant, CancellationTokenSource> WillStartEvent;
-	public event Action<Variant> StartedEvent;
+	public event Action<Variant, GodotCancellationController> EventWillStart;
+	public event Action<Variant> EventStarted;
 	/// <summary>
 	/// Only emitted when Finish() is called, not when the processor stops by itself, e.g. if its max process time has
 	/// been reached.
 	/// </summary>
-	public event Action<Variant, CancellationTokenSource> FinishRequestedEvent;
-	public event Action<Variant> FinishedEvent;
+	public event Action<Variant, GodotCancellationController> EventWillFinish;
+	/// <summary>
+	/// Emitted when the processor stops, regardless of Stop() been called or it stopped by itself.
+	/// </summary>
+	public event Action<Variant> EventFinished;
 
 	/// <summary>
-	/// Completes the task after all WillStartEvent handles have been called and none have cancelled the provided
-	/// CancellationTokenSource. Rejects if cancelled.
+	/// Requests the processor to start.
 	/// </summary>
-	public Task Start(Variant argument);
+	public void Start(Variant argument);
 	/// <summary>
-	/// Completes the task after all FinishRequestedEvent handles have been called and none have cancelled the provided
-	/// CancellationTokenSource. Rejects if cancelled.
+	/// Requests the processor to stop.
 	/// </summary>
-	public Task Finish(Variant reason);
+	public void Finish(Variant reason);
 }

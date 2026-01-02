@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
@@ -9,6 +8,8 @@ public static class VariantExtensionMethods
 {
 	extension (Variant self)
 	{
+		public static Variant Nil() => new Variant();
+
 		public Variant As(Variant.Type type)
 			=> type switch
 			{
@@ -186,33 +187,5 @@ public static class VariantExtensionMethods
 	extension <[MustBeVariant] T>(T value)
 	{
 		public Variant ToVariant() => Variant.From(value);
-	}
-
-	extension<[MustBeVariant] T>(IEnumerable<T> sequence)
-	{
-		public Godot.Collections.Array ToGodotArray() => [..sequence.Select(item => Variant.From(item))];
-		public Godot.Collections.Array<T> ToGodotArrayT() => [..sequence];
-	}
-
-	extension<[MustBeVariant] TKey, [MustBeVariant] TValue>(Dictionary<TKey, TValue> dictionary) where TKey : notnull
-	{
-		public Godot.Collections.Dictionary ToGodotDictionary()
-		{
-			Godot.Collections.Dictionary godotDict = new();
-			foreach (KeyValuePair<TKey, TValue> pair in dictionary)
-			{
-				godotDict[Variant.From(pair.Key)] = Variant.From(pair.Value);
-			}
-			return godotDict;
-		}
-		public Godot.Collections.Dictionary<TKey, TValue> ToGodotDictionaryKV()
-		{
-			Godot.Collections.Dictionary<TKey, TValue> godotDict = new();
-			foreach (KeyValuePair<TKey, TValue> pair in dictionary)
-			{
-				godotDict[pair.Key] = pair.Value;
-			}
-			return godotDict;
-		}
 	}
 }
