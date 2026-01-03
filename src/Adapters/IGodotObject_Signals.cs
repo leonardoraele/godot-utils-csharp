@@ -10,8 +10,7 @@ public partial interface IGodotObject
 	// ABSTRACTS
 	//------------------------------------------------------------------------------------------------------------------
 
-	public void AddUserSignal(string signal);
-	public void AddUserSignal(string signal, Godot.Collections.Array arguments);
+	public void AddUserSignal(string signal, Godot.Collections.Array? arguments = null);
 	public bool HasUserSignal(StringName signal);
 	public void RemoveUserSignal(StringName signal);
 	public Error EmitSignal(StringName signal, params Variant[] args);

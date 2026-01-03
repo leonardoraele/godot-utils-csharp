@@ -8,8 +8,6 @@ public partial interface INode
 	public Node.AutoTranslateModeEnum GetAutoTranslateMode();
 	public bool CanAutoTranslate();
 	public void SetTranslationDomainInherited();
-	public string Atr(string message);
-	public string Atr(string message, StringName context);
-	public string AtrN(string message, StringName pluralMessage, int n);
-	public string AtrN(string message, StringName pluralMessage, int n, StringName context);
+	public string Atr(string message, StringName? context = null);
+	public string AtrN(string message, StringName pluralMessage, int n, StringName? context = null);
 }

@@ -16,7 +16,7 @@ public static class VariantExtensionMethods
 				Variant.Type.Nil => new Variant(),
 				Variant.Type.Bool => self.AsBool(),
 				Variant.Type.Int => self.AsInt64(),
-				Variant.Type.Float => self.AsSingle(),
+				Variant.Type.Float => self.AsDouble(),
 				Variant.Type.String => self.AsString(),
 				Variant.Type.Vector2 => self.AsVector2(),
 				Variant.Type.Vector2I => self.AsVector2I(),

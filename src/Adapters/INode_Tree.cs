@@ -45,8 +45,7 @@ public partial interface INode
 	public string GetTreeStringPretty();
 
 	public void PropagateNotification(int what);
-	public void PropagateCall(StringName method);
-	public void PropagateCall(StringName method, Godot.Collections.Array args, bool parentFirst = false);
+	public void PropagateCall(StringName method, Godot.Collections.Array? args = null, bool parentFirst = false);
 
 	public SceneTree GetTree();
 }
