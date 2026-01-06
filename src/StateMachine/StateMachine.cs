@@ -50,7 +50,7 @@ public partial class StateMachine<T> where T : StateMachine<T>.IState
 	// COMPUTED PROPERTIES
 	// -----------------------------------------------------------------------------------------------------------------
 
-	public TimeSpan ActiveStateDuration => TimeSpan.FromMilliseconds(Time.GetTicksMsec() - this.LastStateTransitionTimestamp);
+	public TimeSpan ActiveStateTimeSpan => TimeSpan.FromMilliseconds(Time.GetTicksMsec() - this.LastStateTransitionTimestamp);
 
 	// -----------------------------------------------------------------------------------------------------------------
 	// EVENTS

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Godot;
 
 namespace Raele.GodotUtils.Extensions;
@@ -55,76 +54,76 @@ public static class VariantExtensionMethods
 				_ => self
 			};
 
-		public Variant Validated(Variant.Type type, PropertyHint hint, string hintString)
-		{
-			Variant input = self.As(type);
-			switch (hint)
-			{
-				case PropertyHint.Range: {
-					if (type != Variant.Type.Float)
-					{
-						return input;
-					}
-					string[] parts = hintString.Split(",").Select(str => str.Trim()).ToArray();
-					float rangeMin = parts.Contains("or_less")
-						? float.NegativeInfinity
-						: parts.ElementAtOrDefault(0) is string minStr && !string.IsNullOrWhiteSpace(minStr)
-							? float.Parse(minStr)
-							: float.NegativeInfinity;
-					float rangeMax = parts.Contains("or_greater")
-						? float.PositiveInfinity
-						: parts.ElementAtOrDefault(1) is string maxStr && !string.IsNullOrWhiteSpace(maxStr)
-							? float.Parse(maxStr)
-							: float.PositiveInfinity;
-					float clamped = Math.Clamp(input.AsSingle(), rangeMin, rangeMax);
-					float step = parts.ElementAtOrDefault(2) is string stepStr && !string.IsNullOrWhiteSpace(stepStr)
-						? float.Parse(stepStr)
-						: 0f;
-					float rounded = Mathf.IsZeroApprox(step) ? clamped : Mathf.Round(clamped / step) * step;
-					return rounded;
-				}
-				case PropertyHint.Enum:
-					switch (type)
-					{
-						case Variant.Type.Int: {
-							long[] options = hintString.Split(",")
-								.Select(str => long.Parse(str.Split(":").Last()))
-								.ToArray();
-							return options.Contains(input.AsInt64()) ? input : default(long);
-						}
-						case Variant.Type.String: {
-							string[] options = hintString.Split(",").Select(str => str.Split(":").First().Trim()).ToArray();
-							return options.Contains(input.AsString()) ? input : "";
-						}
-						default:
-							return input;
-					}
-				case PropertyHint.ColorNoAlpha:
-					return input.AsColor() with { A = 1f };
-				case PropertyHint.TypeString:
-					return input; // TODO
-				case PropertyHint.ArrayType:
-					return input; // TODO
-				case PropertyHint.DictionaryType:
-					return input; // TODO
-				case PropertyHint.LocaleId:
-					return input; // TODO
-				case PropertyHint.LocalizableString:
-					return input; // TODO
-				case PropertyHint.NodeType:
-					if (type != Variant.Type.Object)
-						return input;
-					return hintString.Split(",").Select(s => s.Trim()).Contains(input.AsGodotObject().GetType().Name)
-						? input
-						: new Variant();
-				case PropertyHint.InputName:
-					if (type != Variant.Type.String)
-						return input;
-					return InputMap.GetActions().Contains(input.AsString()) ? input : "";
-				default:
-					return input;
-			};
-		}
+		// public Variant Validated(Variant.Type type, PropertyHint hint, string hintString)
+		// {
+		// 	Variant input = self.As(type);
+		// 	switch (hint)
+		// 	{
+		// 		case PropertyHint.Range: {
+		// 			if (type != Variant.Type.Float)
+		// 			{
+		// 				return input;
+		// 			}
+		// 			string[] parts = hintString.Split(",").Select(str => str.Trim()).ToArray();
+		// 			float rangeMin = parts.Contains("or_less")
+		// 				? float.NegativeInfinity
+		// 				: parts.ElementAtOrDefault(0) is string minStr && !string.IsNullOrWhiteSpace(minStr)
+		// 					? float.Parse(minStr)
+		// 					: float.NegativeInfinity;
+		// 			float rangeMax = parts.Contains("or_greater")
+		// 				? float.PositiveInfinity
+		// 				: parts.ElementAtOrDefault(1) is string maxStr && !string.IsNullOrWhiteSpace(maxStr)
+		// 					? float.Parse(maxStr)
+		// 					: float.PositiveInfinity;
+		// 			float clamped = Math.Clamp(input.AsSingle(), rangeMin, rangeMax);
+		// 			float step = parts.ElementAtOrDefault(2) is string stepStr && !string.IsNullOrWhiteSpace(stepStr)
+		// 				? float.Parse(stepStr)
+		// 				: 0f;
+		// 			float rounded = Mathf.IsZeroApprox(step) ? clamped : Mathf.Round(clamped / step) * step;
+		// 			return rounded;
+		// 		}
+		// 		case PropertyHint.Enum:
+		// 			switch (type)
+		// 			{
+		// 				case Variant.Type.Int: {
+		// 					long[] options = hintString.Split(",")
+		// 						.Select(str => long.Parse(str.Split(":").Last()))
+		// 						.ToArray();
+		// 					return options.Contains(input.AsInt64()) ? input : default(long);
+		// 				}
+		// 				case Variant.Type.String: {
+		// 					string[] options = hintString.Split(",").Select(str => str.Split(":").First().Trim()).ToArray();
+		// 					return options.Contains(input.AsString()) ? input : "";
+		// 				}
+		// 				default:
+		// 					return input;
+		// 			}
+		// 		case PropertyHint.ColorNoAlpha:
+		// 			return input.AsColor() with { A = 1f };
+		// 		case PropertyHint.TypeString:
+		// 			return input; // TODO
+		// 		case PropertyHint.ArrayType:
+		// 			return input; // TODO
+		// 		case PropertyHint.DictionaryType:
+		// 			return input; // TODO
+		// 		case PropertyHint.LocaleId:
+		// 			return input; // TODO
+		// 		case PropertyHint.LocalizableString:
+		// 			return input; // TODO
+		// 		case PropertyHint.NodeType:
+		// 			if (type != Variant.Type.Object)
+		// 				return input;
+		// 			return hintString.Split(",").Select(s => s.Trim()).Contains(input.AsGodotObject().GetType().Name)
+		// 				? input
+		// 				: new Variant();
+		// 		case PropertyHint.InputName:
+		// 			if (type != Variant.Type.String)
+		// 				return input;
+		// 			return InputMap.GetActions().Contains(input.AsString()) ? input : "";
+		// 		default:
+		// 			return input;
+		// 	};
+		// }
 
 		public static Variant.Type Typeof<[MustBeVariant] T>()
 			=> Typeof(typeof(T));
@@ -187,5 +186,69 @@ public static class VariantExtensionMethods
 	extension <[MustBeVariant] T>(T value)
 	{
 		public Variant ToVariant() => Variant.From(value);
+	}
+
+	extension (Variant.Type self)
+	{
+		public bool IsNumericType()
+			=> self == Variant.Type.Int || self == Variant.Type.Float;
+
+		public bool IsArrayType()
+			=> self == Variant.Type.Array
+			|| self == Variant.Type.PackedByteArray
+			|| self == Variant.Type.PackedInt32Array
+			|| self == Variant.Type.PackedInt64Array
+			|| self == Variant.Type.PackedFloat32Array
+			|| self == Variant.Type.PackedFloat64Array
+			|| self == Variant.Type.PackedStringArray
+			|| self == Variant.Type.PackedColorArray
+			|| self == Variant.Type.PackedVector2Array
+			|| self == Variant.Type.PackedVector3Array
+			|| self == Variant.Type.PackedVector4Array;
+
+		/// <summary>
+		/// Algorithm replicated from https://github.com/godotengine/godot/blob/master/core/variant/variant.cpp
+		/// </summary>
+		public bool IsConvertibleTo(Variant.Type other, bool strict = false)
+			=> self == other
+			|| other == Variant.Type.Nil
+			|| self == Variant.Type.Nil && other == Variant.Type.Object
+			|| other switch
+			{
+				Variant.Type.Bool => strict
+					? self.IsAnyOf([Variant.Type.Int, Variant.Type.Float])
+					: self.IsAnyOf([Variant.Type.Int, Variant.Type.Float, Variant.Type.String]),
+				Variant.Type.Int => strict
+					? self.IsAnyOf([Variant.Type.Bool, Variant.Type.Float])
+					: self.IsAnyOf([Variant.Type.Bool, Variant.Type.Float, Variant.Type.String]),
+				Variant.Type.Float => strict
+					? self.IsAnyOf([Variant.Type.Bool, Variant.Type.Int])
+					: self.IsAnyOf([Variant.Type.Bool, Variant.Type.Int, Variant.Type.String]),
+				Variant.Type.String => strict
+					? self.IsAnyOf([Variant.Type.NodePath, Variant.Type.StringName])
+					: self != Variant.Type.Object,
+				Variant.Type.Vector2 => self == Variant.Type.Vector2I,
+				Variant.Type.Vector2I => self == Variant.Type.Vector2,
+				Variant.Type.Rect2 => self == Variant.Type.Rect2I,
+				Variant.Type.Rect2I => self == Variant.Type.Rect2,
+				Variant.Type.Transform2D => self == Variant.Type.Transform3D,
+				Variant.Type.Vector3 => self == Variant.Type.Vector3I,
+				Variant.Type.Vector3I => self == Variant.Type.Vector3,
+				Variant.Type.Vector4 => self == Variant.Type.Vector4I,
+				Variant.Type.Vector4I => self == Variant.Type.Vector4,
+				Variant.Type.Quaternion => self == Variant.Type.Basis,
+				Variant.Type.Basis => self == Variant.Type.Quaternion,
+				Variant.Type.Transform3D => self.IsAnyOf([Variant.Type.Transform2D, Variant.Type.Quaternion, Variant.Type.Basis, Variant.Type.Projection]),
+				Variant.Type.Projection => self == Variant.Type.Transform3D,
+				Variant.Type.Color => self.IsAnyOf([Variant.Type.String, Variant.Type.Int]),
+				Variant.Type.Rid => self == Variant.Type.Object,
+				Variant.Type.StringName => self == Variant.Type.String,
+				Variant.Type.NodePath => self == Variant.Type.String,
+				Variant.Type.Array => self.IsArrayType(),
+				_ => other.IsArrayType() && self == Variant.Type.Array,
+			};
+
+		private bool IsAnyOf(Variant.Type[] types)
+			=> types.Contains(self);
 	}
 }

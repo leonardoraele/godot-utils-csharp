@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using Raele.GodotUtils.Extensions;
 
 namespace Raele.GodotUtils.Adapters;
 
@@ -14,6 +15,8 @@ public record GodotPropertyInfo
 		=> subject._dict;
 	public static GodotPropertyInfo FromGodotDictionary(Godot.Collections.Dictionary dict)
 		=> new() { Name = "", _dict = dict };
+	public static Godot.Collections.Array<Godot.Collections.Dictionary> BuildPropertyList(GodotPropertyInfo[] properties)
+		=> properties.Select(ToGodotDictionary).ToGodotArrayT();
 
 	//==================================================================================================================
 	// FIELDS

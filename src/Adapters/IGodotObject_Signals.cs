@@ -79,23 +79,4 @@ public partial interface IGodotObject
 	/// <para>Returns <see langword="true"/> if the object is blocking its signals from being emitted. See <see cref="Godot.GodotObject.SetBlockSignals(bool)"/>.</para>
 	/// </summary>
 	public bool IsBlockingSignals();
-
-	//------------------------------------------------------------------------------------------------------------------
-	// CONCRETES
-	//------------------------------------------------------------------------------------------------------------------
-
-	public ConnectedSignal[] GetSignalConnectionListParsed(StringName signal)
-		=> this.GetSignalConnectionList(signal)
-			.Select(ConnectedSignal.FromDictionary)
-			.ToArray();
-
-	public ConnectedSignal[] GetIncomingConnectionsParsed()
-		=> this.GetIncomingConnections()
-			.Select(ConnectedSignal.FromDictionary)
-			.ToArray();
-
-	public GodotMethodInfo[] GetSignalListParsed()
-		=> this.GetSignalList()
-			.Select(GodotMethodInfo.FromDictionary)
-			.ToArray();
 }

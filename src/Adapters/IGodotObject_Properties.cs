@@ -8,7 +8,7 @@ public partial interface IGodotObject
 	public Variant Get(StringName property);
 	public void SetIndexed(NodePath propertyPath, Variant value);
 	public Variant GetIndexed(NodePath propertyPath);
-	public Godot.Collections.Array<Godot.Collections.Dictionary> GetPropertyList();
+	public Godot.Collections.Array<Godot.Collections.Dictionary> _GetPropertyList();
 	public bool PropertyCanRevert(StringName property);
 	public Variant PropertyGetRevert(StringName property);
 	public void NotifyPropertyListChanged();
