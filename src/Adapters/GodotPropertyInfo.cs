@@ -18,6 +18,10 @@ public record GodotPropertyInfo
 	public static Godot.Collections.Array<Godot.Collections.Dictionary> BuildPropertyList(GodotPropertyInfo[] properties)
 		=> properties.Select(ToGodotDictionary).ToGodotArrayT();
 
+	public GodotPropertyInfo() {}
+	public GodotPropertyInfo(GodotPropertyInfo other)
+		=> this._dict = other._dict.Duplicate();
+
 	//==================================================================================================================
 	// FIELDS
 	//==================================================================================================================
