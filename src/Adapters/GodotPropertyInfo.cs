@@ -12,60 +12,58 @@ public record GodotPropertyInfo
 	//==================================================================================================================
 
 	public static Godot.Collections.Dictionary ToGodotDictionary(GodotPropertyInfo subject)
-		=> subject._dict;
+		=> subject.BackingDict.Duplicate();
 	public static GodotPropertyInfo FromGodotDictionary(Godot.Collections.Dictionary dict)
-		=> new() { Name = "", _dict = dict };
+		=> new(dict);
 	public static Godot.Collections.Array<Godot.Collections.Dictionary> BuildPropertyList(GodotPropertyInfo[] properties)
 		=> properties.Select(ToGodotDictionary).ToGodotArrayT();
 
-	public GodotPropertyInfo() {}
+	public GodotPropertyInfo()
+		=> this.BackingDict = new();
+	public GodotPropertyInfo(Godot.Collections.Dictionary dict)
+		=> this.BackingDict = dict.Duplicate();
 	public GodotPropertyInfo(GodotPropertyInfo other)
-		=> this._dict = other._dict.Duplicate();
+		=> this.BackingDict = other.BackingDict.Duplicate();
 
 	//==================================================================================================================
 	// FIELDS
 	//==================================================================================================================
 
-	private Godot.Collections.Dictionary _dict = new();
+	private Godot.Collections.Dictionary BackingDict;
 
 	//==================================================================================================================
 	// COMPUTED PROPERTIES
 	//==================================================================================================================
 
-	public required string Name
+	public string Name
 	{
-		get => _dict["name"].AsString();
-		init => _dict["name"] = value;
+		get => BackingDict["name"].AsString();
+		init => BackingDict["name"] = value;
 	}
 	public string ClassName
 	{
-		get => _dict.GetValueOrDefault("class_name", "").AsString();
-		init => _dict["class_name"] = value;
+		get => BackingDict.GetValueOrDefault("class_name", "").AsString();
+		init => BackingDict["class_name"] = value;
 	}
 	public Variant.Type Type
 	{
-		get => (Variant.Type) _dict.GetValueOrDefault("type", (long) Variant.Type.Nil).AsInt64();
-		init => _dict["type"] = (long) value;
+		get => (Variant.Type) BackingDict.GetValueOrDefault("type", (long) Variant.Type.Nil).AsInt64();
+		init => BackingDict["type"] = (long) value;
 	}
 	public PropertyHint Hint
 	{
-		get => (PropertyHint) _dict.GetValueOrDefault("hint", (long) PropertyHint.None).AsInt64();
-		init => _dict["hint"] = (long) value;
+		get => (PropertyHint) BackingDict.GetValueOrDefault("hint", (long) PropertyHint.None).AsInt64();
+		init => BackingDict["hint"] = (long) value;
 	}
 	public string HintString
 	{
-		get => _dict.GetValueOrDefault("hint_string", "").AsString();
-		init => _dict["hint_string"] = value;
+		get => BackingDict.GetValueOrDefault("hint_string", "").AsString();
+		init => BackingDict["hint_string"] = value;
 	}
 	public long UsageBitmask
 	{
-		get => _dict.GetValueOrDefault("usage", (long) PropertyUsageFlags.Default).AsInt64();
-		init => _dict["usage"] = value;
-	}
-	public Variant DefaultValue
-	{
-		get => _dict.GetValueOrDefault("default_value", new Variant());
-		init => _dict["default_value"] = value;
+		get => BackingDict.GetValueOrDefault("usage", (long) PropertyUsageFlags.Default).AsInt64();
+		init => BackingDict["usage"] = value;
 	}
 	public HashSet<PropertyUsageFlags> Usage
 	{
@@ -75,6 +73,11 @@ public record GodotPropertyInfo
 			.Select(mask => (PropertyUsageFlags) mask)
 			.ToHashSet();
 		init => this.UsageBitmask = value.Aggregate(0L, (acc, flag) => acc | (long) flag);
+	}
+	public Variant DefaultValue
+	{
+		get => BackingDict.GetValueOrDefault("default_value", Variant.NULL);
+		init => BackingDict["default_value"] = value;
 	}
 
 	//==================================================================================================================

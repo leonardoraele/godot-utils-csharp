@@ -106,6 +106,9 @@ public abstract partial class ActivityNode : Node, IActivityNode, ActivityImpl.I
 	public override Array<Dictionary> _GetPropertyList() => this.Impl._GetPropertyList();
 	public override Variant _Get(StringName property) => this.Impl._Get(property);
 	public override bool _Set(StringName property, Variant value) => this.Impl._Set(property, value);
+	public override bool _PropertyCanRevert(StringName property) => this.Impl._PropertyCanRevert(property);
+	public override Variant _PropertyGetRevert(StringName property) => this.Impl._PropertyGetRevert(property);
+	public override void _ValidateProperty(Dictionary property) => this.Impl._ValidateProperty(property);
 	public override void _EnterTree() => this.Impl._EnterTree();
 	public override void _ExitTree() => this.Impl._ExitTree();
 	public override void _Ready() => this.Impl._Ready();

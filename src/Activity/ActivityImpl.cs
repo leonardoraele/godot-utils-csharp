@@ -13,7 +13,7 @@ public class ActivityImpl(ActivityImpl.IWrapper WRAPPER) : IActivity
 	#region STATICS & CONSTRUCTORS
 	//==================================================================================================================
 
-	// public static readonly string MyConstant = "";
+	private const string CATEGORY_NAME = "Activity";
 
 	//==================================================================================================================
 	#endregion
@@ -31,8 +31,8 @@ public class ActivityImpl(ActivityImpl.IWrapper WRAPPER) : IActivity
 
 	public bool IsActive { get; private set; }
 	public TimeSpan ActiveTimeSpan { get; private set; }
-	public Node.ProcessModeEnum ProcessModeWhenActive;
-	public Node.ProcessModeEnum ProcessModeWhenInactive;
+	public Node.ProcessModeEnum ProcessModeWhenActive = Node.ProcessModeEnum.Inherit;
+	public Node.ProcessModeEnum ProcessModeWhenInactive = Node.ProcessModeEnum.Disabled;
 
 	//==================================================================================================================
 	#endregion
@@ -79,8 +79,8 @@ public class ActivityImpl(ActivityImpl.IWrapper WRAPPER) : IActivity
 		=> new List<GodotPropertyInfo>()
 			.Append(new()
 			{
-				Name = nameof(IActivity),
-				Usage = [PropertyUsageFlags.Category]
+				Name = CATEGORY_NAME,
+				Usage = [PropertyUsageFlags.Category],
 			})
 			.Append(new()
 			{
@@ -88,7 +88,7 @@ public class ActivityImpl(ActivityImpl.IWrapper WRAPPER) : IActivity
 				Type = Variant.Type.Int,
 				Hint = PropertyHint.Enum,
 				HintString = Enum.GetNames<Node.ProcessModeEnum>().Join(","),
-				DefaultValue = (long) Node.ProcessModeEnum.Inherit,
+				DefaultValue = this._PropertyGetRevert(nameof(this.ProcessModeWhenActive)).AsInt64(),
 			})
 			.Append(new()
 			{
@@ -96,11 +96,17 @@ public class ActivityImpl(ActivityImpl.IWrapper WRAPPER) : IActivity
 				Type = Variant.Type.Int,
 				Hint = PropertyHint.Enum,
 				HintString = Enum.GetNames<Node.ProcessModeEnum>().Join(","),
-				DefaultValue = (long) Node.ProcessModeEnum.Disabled,
+				DefaultValue = this._PropertyGetRevert(nameof(this.ProcessModeWhenInactive)).AsInt64(),
 			})
 			.Select(GodotPropertyInfo.ToGodotDictionary)
 			.ToGodotArrayT();
-	public virtual void _ValidateProperty(Godot.Collections.Dictionary property) {}
+	public virtual Variant _Get(StringName property)
+		=> property.ToString() switch
+		{
+			nameof(this.ProcessModeWhenActive) => (long) this.ProcessModeWhenActive,
+			nameof(this.ProcessModeWhenInactive) => (long) this.ProcessModeWhenInactive,
+			_ => new Variant(),
+		};
 	public virtual bool _Set(StringName property, Variant value)
 	{
 		switch (property.ToString())
@@ -114,13 +120,21 @@ public class ActivityImpl(ActivityImpl.IWrapper WRAPPER) : IActivity
 		}
 		return false;
 	}
-	public virtual Variant _Get(StringName property)
+	public virtual bool _PropertyCanRevert(StringName property)
 		=> property.ToString() switch
 		{
-			nameof(this.ProcessModeWhenActive) => (long) this.ProcessModeWhenActive,
-			nameof(this.ProcessModeWhenInactive) => (long) this.ProcessModeWhenInactive,
-			_ => new Variant(),
+			nameof(this.ProcessModeWhenActive) => this.ProcessModeWhenActive != (Node.ProcessModeEnum) this._PropertyGetRevert(property).AsInt64(),
+			nameof(this.ProcessModeWhenInactive) => this.ProcessModeWhenInactive != (Node.ProcessModeEnum) this._PropertyGetRevert(property).AsInt64(),
+			_ => false,
 		};
+	public virtual Variant _PropertyGetRevert(StringName property)
+		=> property.ToString() switch
+		{
+			nameof(this.ProcessModeWhenActive) => (long) Node.ProcessModeEnum.Inherit,
+			nameof(this.ProcessModeWhenInactive) => (long) Node.ProcessModeEnum.Disabled,
+			_ => Variant.NULL,
+		};
+	public virtual void _ValidateProperty(Godot.Collections.Dictionary property) {}
 	public virtual void _EnterTree() {}
 	public virtual void _ExitTree() {}
 	public virtual void _Ready() {}
@@ -201,6 +215,8 @@ public class ActivityImpl(ActivityImpl.IWrapper WRAPPER) : IActivity
 	/// </summary>
 	public bool Finish(string reason, Variant details)
 	{
+		if (!this.IsActive)
+			return true;
 		GodotCancellationController controller = new();
 		WRAPPER._ActivityWillFinish(reason, details, controller);
 		this.EventWillFinish?.Invoke(reason, details, controller);
