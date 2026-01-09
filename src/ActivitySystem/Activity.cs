@@ -2,7 +2,7 @@ using System;
 using Godot;
 using Raele.GodotUtils.Extensions;
 
-namespace Raele.GodotUtils;
+namespace Raele.GodotUtils.ActivitySystem;
 
 public partial class Activity : Node, IActivity
 {

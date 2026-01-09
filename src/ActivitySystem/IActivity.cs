@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-namespace Raele.GodotUtils;
+namespace Raele.GodotUtils.ActivitySystem;
 
 /// <summary>
 /// Interface for activity nodes. An activity is a node that can be active or inactive, and performs some processing

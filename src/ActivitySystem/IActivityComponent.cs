@@ -1,5 +1,5 @@
 
-namespace Raele.GodotUtils;
+namespace Raele.GodotUtils.ActivitySystem;
 
 public interface IActivityComponent
 {
