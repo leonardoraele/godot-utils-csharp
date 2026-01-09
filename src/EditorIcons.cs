@@ -1,5 +1,11 @@
 using Godot;
 
+/// <summary>
+/// Icons repository: https://github.com/godotengine/godot/tree/master/editor/icons
+/// Icon browser websites:
+/// - https://godot-editor-icons.github.io/
+/// - https://godoticons.aymeri.dev/
+/// </summary>
 public static class EditorIcons
 {
 	public static Texture2D GetIcon(string name)

@@ -40,8 +40,8 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 
 	public StateEnum State { get; private set; } = StateEnum.Inactive;
 
-	private TimingStrategy StartStrategyImpl = new NeverTimingStrategy();
-	private TimingStrategy FinishStrategyImpl = new NeverTimingStrategy();
+	private ITimingStrategy StartStrategyImpl = new NeverTimingStrategy();
+	private ITimingStrategy FinishStrategyImpl = new NeverTimingStrategy();
 
 	//==================================================================================================================
 	#endregion
@@ -130,7 +130,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 					})
 			)
 			.Select(GodotPropertyInfo.ToGodotDictionary)
-			.Concat(base._GetPropertyList())
+			.Concat(base._GetPropertyList() ?? [])
 			.ToGodotArrayT();
 	public override Variant _Get(StringName property)
 		=> property.ToString() switch
@@ -221,7 +221,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 	private bool TestStartConditions() => this.StartStrategyImpl.Test();
 	private bool TestFinishConditions() => this.FinishStrategyImpl.Test();
 
-	private TimingStrategy CreateTimingStrategyHandler(TimingStrategyEnum strategy)
+	private ITimingStrategy CreateTimingStrategyHandler(TimingStrategyEnum strategy)
 		=> strategy switch
 		{
 			TimingStrategyEnum.Immediate => new ImmediateTimingStrategy(),
@@ -238,23 +238,27 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 		#region Strategy Implementations
 	//==================================================================================================================
 
-	private abstract partial class TimingStrategy : GodotObject
+	private interface ITimingStrategy
 	{
-		public override Godot.Collections.Array<Godot.Collections.Dictionary> _GetPropertyList() => [];
+		public virtual Godot.Collections.Array<Godot.Collections.Dictionary> _GetPropertyList() => [];
+		public virtual Variant _Get(StringName property) => new Variant();
+		public virtual bool _Set(StringName property, Variant value) => false;
+		public virtual bool _PropertyCanRevert(StringName property) => false;
+		public virtual Variant _PropertyGetRevert(StringName property) => new Variant();
 		public abstract bool Test();
 	}
 
-	private partial class ImmediateTimingStrategy : TimingStrategy
+	private partial class ImmediateTimingStrategy : ITimingStrategy
 	{
-		public override bool Test() => true;
+		bool ITimingStrategy.Test() => true;
 	}
 
-	private partial class AfterDurationTimingStrategy(ActivityComponent WRAPPER) : TimingStrategy
+	private partial class AfterDurationTimingStrategy(ActivityComponent WRAPPER) : ITimingStrategy
 	{
 		private const double DEFAULT_DURATION = 1d;
 		private double Duration = DEFAULT_DURATION;
 		private double ElapsedSeconds;
-		public override Godot.Collections.Array<Godot.Collections.Dictionary> _GetPropertyList()
+		Godot.Collections.Array<Godot.Collections.Dictionary> ITimingStrategy._GetPropertyList()
 			=> new List<GodotPropertyInfo>()
 			{
 				new()
@@ -268,9 +272,9 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 			}
 			.Select(GodotPropertyInfo.ToGodotDictionary)
 			.ToGodotArrayT();
-		public override Variant _Get(StringName property)
+		Variant ITimingStrategy._Get(StringName property)
 			=> property.ToString() == nameof(Duration) ? this.Duration : Variant.NULL;
-		public override bool _Set(StringName property, Variant value)
+		bool ITimingStrategy._Set(StringName property, Variant value)
 		{
 			switch (property.ToString())
 			{
@@ -280,11 +284,11 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 			}
 			return false;
 		}
-		public override bool _PropertyCanRevert(StringName property)
+		bool ITimingStrategy._PropertyCanRevert(StringName property)
 			=> property.ToString() == nameof(Duration) && this.Duration != DEFAULT_DURATION;
-		public override Variant _PropertyGetRevert(StringName property)
+		Variant ITimingStrategy._PropertyGetRevert(StringName property)
 			=> property.ToString() == nameof(Duration) ? DEFAULT_DURATION : Variant.NULL;
-		public override bool Test()
+		bool ITimingStrategy.Test()
 		{
 			this.ElapsedSeconds += WRAPPER.GetProcessDeltaTime();
 			if (this.ElapsedSeconds >= this.Duration)
@@ -296,7 +300,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 		}
 	}
 
-	private partial class AnimationMarkerTimingStrategy : TimingStrategy
+	private partial class AnimationMarkerTimingStrategy : ITimingStrategy
 	{
 		private AnimationPlayer? AnimationPlayer;
 		private string Animation = "";
@@ -320,7 +324,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				&& animation.HasMarker(this.Marker)
 					? animation.GetMarkerTime(this.Marker)
 					: double.PositiveInfinity;
-		public override Godot.Collections.Array<Godot.Collections.Dictionary> _GetPropertyList()
+		Godot.Collections.Array<Godot.Collections.Dictionary> ITimingStrategy._GetPropertyList()
 			=> new GodotPropertyInfo[]
 				{
 					new()
@@ -366,7 +370,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				}
 				.Select(GodotPropertyInfo.ToGodotDictionary)
 				.ToGodotArrayT();
-		public override Variant _Get(StringName property)
+		Variant ITimingStrategy._Get(StringName property)
 			=> property.ToString() switch
 			{
 				nameof(AnimationPlayer) => this.AnimationPlayer ?? Variant.NULL,
@@ -374,7 +378,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				nameof(Marker) => this.Marker,
 				_ => Variant.NULL,
 			};
-		public override bool _Set(StringName property, Variant value)
+		bool ITimingStrategy._Set(StringName property, Variant value)
 		{
 			switch (property.ToString())
 			{
@@ -390,7 +394,8 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 			}
 			return false;
 		}
-		public override bool _PropertyCanRevert(StringName property)
+		bool ITimingStrategy._PropertyCanRevert(StringName property) => this._PropertyCanRevert(property);
+		private bool _PropertyCanRevert(StringName property)
 			=> property.ToString() switch
 			{
 				nameof(AnimationPlayer) => this.AnimationPlayer != this._PropertyGetRevert(nameof(AnimationPlayer)).AsGodotObject(),
@@ -398,7 +403,8 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				nameof(Marker) => this.Marker != this._PropertyGetRevert(nameof(Marker)).AsString(),
 				_ => false,
 			};
-		public override Variant _PropertyGetRevert(StringName property)
+		Variant ITimingStrategy._PropertyGetRevert(StringName property) => this._PropertyGetRevert(property);
+		private Variant _PropertyGetRevert(StringName property)
 			=> property.ToString() switch
 			{
 				nameof(AnimationPlayer) => Variant.NULL,
@@ -406,12 +412,12 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				nameof(Marker) => "",
 				_ => Variant.NULL,
 			};
-		public override bool Test()
+		bool ITimingStrategy.Test()
 			=> (this.AnimationPlayer?.CurrentAnimationPosition ?? 0d)
 					>= this.MarkerTime - Mathf.Epsilon;
 	}
 
-	private partial class WhenExpressionIsTrueTimingStrategy(ActivityComponent WRAPPER) : TimingStrategy
+	private partial class WhenExpressionIsTrueTimingStrategy(ActivityComponent WRAPPER) : ITimingStrategy
 	{
 		private Node? Context = WRAPPER;
 		private Variant Param = new Variant();
@@ -431,7 +437,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 			}
 			set;
 		}
-		public override Godot.Collections.Array<Godot.Collections.Dictionary> _GetPropertyList()
+		Godot.Collections.Array<Godot.Collections.Dictionary> ITimingStrategy._GetPropertyList()
 			=> new GodotPropertyInfo[]
 			{
 				new()
@@ -458,7 +464,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 			}
 			.Select(GodotPropertyInfo.ToGodotDictionary)
 			.ToGodotArrayT();
-		public override Variant _Get(StringName property)
+		Variant ITimingStrategy._Get(StringName property)
 			=> property.ToString() switch
 			{
 				nameof(Context) => this.Context ?? Variant.NULL,
@@ -466,7 +472,7 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				nameof(Expression) => this.Expression,
 				_ => new Variant(),
 			};
-		public override bool _Set(StringName property, Variant value)
+		bool ITimingStrategy._Set(StringName property, Variant value)
 		{
 			switch (property.ToString())
 			{
@@ -482,7 +488,8 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 			}
 			return false;
 		}
-		public override bool _PropertyCanRevert(StringName property)
+		bool ITimingStrategy._PropertyCanRevert(StringName property) => this._PropertyCanRevert(property);
+		private bool _PropertyCanRevert(StringName property)
 			=> property.ToString() switch
 			{
 				nameof(Context) => this.Context != this._PropertyGetRevert(nameof(Context)).AsGodotObject(),
@@ -490,7 +497,8 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				nameof(Expression) => this.Expression != this._PropertyGetRevert(nameof(Expression)).AsString(),
 				_ => false,
 			};
-		public override Variant _PropertyGetRevert(StringName property)
+		Variant ITimingStrategy._PropertyGetRevert(StringName property) => this._PropertyGetRevert(property);
+		private Variant _PropertyGetRevert(StringName property)
 			=> property.ToString() switch
 			{
 				nameof(Context) => WRAPPER,
@@ -498,13 +506,13 @@ public abstract partial class ActivityComponent : Activity, IActivityComponent
 				nameof(Expression) => "",
 				_ => Variant.NULL,
 			};
-		public override bool Test()
+		bool ITimingStrategy.Test()
 			=> this.Interpreter.Execute([this.Param], this.Context).AsBool();
 	}
 
-	private partial class NeverTimingStrategy : TimingStrategy
+	private partial class NeverTimingStrategy : ITimingStrategy
 	{
-		public override bool Test() => false;
+		bool ITimingStrategy.Test() => false;
 	}
 
 	//==================================================================================================================
