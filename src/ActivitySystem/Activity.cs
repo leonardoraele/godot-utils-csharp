@@ -1,9 +1,11 @@
 using System;
 using Godot;
+using Godot.Collections;
 using Raele.GodotUtils.Extensions;
 
 namespace Raele.GodotUtils.ActivitySystem;
 
+[Tool]
 public partial class Activity : Node, IActivity
 {
 	//==================================================================================================================
@@ -82,12 +84,21 @@ public partial class Activity : Node, IActivity
 	#region OVERRIDES & VIRTUALS
 	//==================================================================================================================
 
+	public override void _ValidateProperty(Dictionary property)
+	{
+		base._ValidateProperty(property);
+		if (property["name"].AsString() == Node.PropertyName.ProcessMode.ToString())
+		{
+			property["usage"] = (long) PropertyUsageFlags.None;
+		}
+	}
+
 	public override void _Ready()
 	{
 		base._Ready();
-		this.IsActive = false;
-		this.ActiveTimeSpan = TimeSpan.Zero;
-		this.ProcessMode = this.ProcessModeWhenInactive;
+		if (Engine.IsEditorHint())
+			return;
+		this.ForceFinish();
 	}
 
 	public override void _Process(double delta)
