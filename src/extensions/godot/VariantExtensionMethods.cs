@@ -186,9 +186,9 @@ public static class VariantExtensionMethods
 		// }
 	}
 
-	extension <[MustBeVariant] T>(T value)
+	extension <[MustBeVariant] T>(T self)
 	{
-		public Variant ToVariant() => Variant.From(value);
+		public Variant ToVariant() => Variant.From(self);
 	}
 
 	extension (Variant.Type self)

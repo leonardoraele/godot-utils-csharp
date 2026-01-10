@@ -11,7 +11,7 @@ public static class EditorIcons
 	public static Texture2D GetIcon(string name)
 		=> EditorInterface.Singleton.GetBaseControl().GetThemeIcon(name, "EditorIcons");
 
-	public static class IconNames
+	public static class IconName
 	{
 		public const string _2D = "2D";
 		public const string _2DNodes = "2DNodes";

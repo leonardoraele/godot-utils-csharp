@@ -1,28 +1,30 @@
-using System.Linq;
 using Godot;
-using Raele.GodotUtils.Adapters;
+using Godot.Collections;
 using Raele.GodotUtils.Extensions;
 
 namespace Raele.GodotUtils.ActivitySystem.TimingStrategies;
 
 [Tool][GlobalClass]
-public partial class AnimationMarkerTimingStrategy : TimingStrategy
+public partial class AnimationMarkerStrategy : TimingStrategy
 {
-	private AnimationPlayer? AnimationPlayer;
-	private string Animation = "";
-	private string Marker = "";
+	[Export(PropertyHint.NodePathValidTypes, nameof(Godot.AnimationPlayer))] public NodePath AnimationPlayer = "";
+	[Export] public string Animation = "";
+	[Export] public string Marker = "";
+
+	private AnimationPlayer? AnimationPlayerObject
+		=> this.GetLocalScene()?.GetNodeOrNull<AnimationPlayer>(this.AnimationPlayer);
 	private Animation? AnimationObject
 	{
 		get
 		{
-			if (this.AnimationPlayer == null)
+			if (this.AnimationPlayerObject == null)
 				return null;
 			string animationName = string.IsNullOrWhiteSpace(this.Animation)
-				? this.AnimationPlayer.CurrentAnimation
+				? this.AnimationPlayerObject.CurrentAnimation
 				: this.Animation;
 			if (string.IsNullOrWhiteSpace(animationName))
 				return null;
-			return this.AnimationPlayer.GetAnimation(animationName);
+			return this.AnimationPlayerObject.GetAnimation(animationName);
 		}
 	}
 	private double MarkerTime
@@ -30,88 +32,44 @@ public partial class AnimationMarkerTimingStrategy : TimingStrategy
 			&& animation.HasMarker(this.Marker)
 				? animation.GetMarkerTime(this.Marker)
 				: double.PositiveInfinity;
-	public override Godot.Collections.Array<Godot.Collections.Dictionary> _GetPropertyList()
-		=> new GodotPropertyInfo[]
-			{
-				new()
-				{
-					Name = nameof(AnimationPlayer),
-					Type = Variant.Type.Object,
-					Hint = PropertyHint.NodeType,
-					HintString = nameof(Godot.AnimationPlayer),
-					Usage = [PropertyUsageFlags.Default, PropertyUsageFlags.UpdateAllIfModified],
-				},
-				this.AnimationPlayer == null
-					? new()
-					{
-						Name = nameof(Animation),
-						Type = Variant.Type.String,
-					}
-					: new()
-					{
-						Name = nameof(Animation),
-						Type = Variant.Type.String,
-						Hint = PropertyHint.Enum,
-						HintString = this.AnimationPlayer.GetAnimationList().Append("").JoinIntoString(","),
-						Usage = [PropertyUsageFlags.Default, PropertyUsageFlags.UpdateAllIfModified],
-					},
-				this.AnimationObject is not Animation animation
-					? new()
-					{
-						Name = nameof(Marker),
-						Type = Variant.Type.String,
-					}
-					: new()
-					{
-						Name = nameof(Marker),
-						Type = Variant.Type.String,
-						Hint = PropertyHint.Enum,
-						HintString = animation.GetMarkerNames().Append("").JoinIntoString(","),
-					}
-			}
-			.Select(GodotPropertyInfo.ToGodotDictionary)
-			.ToGodotArrayT();
-	public override Variant _Get(StringName property)
-		=> property.ToString() switch
-		{
-			nameof(AnimationPlayer) => Variant.From(this.AnimationPlayer),
-			nameof(Animation) => this.Animation,
-			nameof(Marker) => this.Marker,
-			_ => Variant.NULL,
-		};
-	public override bool _Set(StringName property, Variant value)
+
+	public override void _ValidateProperty(Dictionary property)
 	{
-		switch (property.ToString())
+		base._ValidateProperty(property);
+		switch (property["name"].AsString())
 		{
 			case nameof(AnimationPlayer):
-				this.AnimationPlayer = value.AsGodotObject<AnimationPlayer>();
-				return true;
-			case nameof(Animation):
-				this.Animation = value.AsString();
-				return true;
-			case nameof(Marker):
-				this.Marker = value.AsString();
-				return true;
+				property["usage"] = (long) PropertyUsageFlags.Default
+					| (long) PropertyUsageFlags.UpdateAllIfModified
+					| (long) PropertyUsageFlags.NodePathFromSceneRoot;
+				break;
+			case nameof(this.Animation):
+				if (this.AnimationPlayerObject == null)
+					break;
+				property["hint"] = (long) PropertyHint.Enum;
+				property["hint_string"] = this.AnimationPlayerObject.GetAnimationList().JoinIntoString(",");
+				property["usage"] = (long) PropertyUsageFlags.Default | (long) PropertyUsageFlags.UpdateAllIfModified;
+				break;
+			case nameof(this.Marker):
+				if (this.AnimationObject == null)
+					break;
+				property["hint"] = (long) PropertyHint.Enum;
+				property["hint_string"] = this.AnimationObject.GetMarkerNames().JoinIntoString(",");
+				break;
+			default:
+				if (
+					property["name"].AsString() == Resource.PropertyName.ResourceLocalToScene.ToString()
+					&& !string.IsNullOrWhiteSpace(this.AnimationPlayer.ToString())
+				)
+				{
+					this.ResourceLocalToScene = true;
+					property["usage"] = (long) PropertyUsageFlags.Default | (long) PropertyUsageFlags.ReadOnly;
+					property["info"] = $"{nameof(AnimationMarkerStrategy)} must be local to scene because it references an {nameof(AnimationPlayer)} node in the scene.";
+				}
+				break;
 		}
-		return false;
 	}
-	public override bool _PropertyCanRevert(StringName property)
-		=> property.ToString() switch
-		{
-			nameof(AnimationPlayer) => this.AnimationPlayer != this._PropertyGetRevert(nameof(AnimationPlayer)).AsGodotObject(),
-			nameof(Animation) => this.Animation != this._PropertyGetRevert(nameof(Animation)).AsString(),
-			nameof(Marker) => this.Marker != this._PropertyGetRevert(nameof(Marker)).AsString(),
-			_ => false,
-		};
-	public override Variant _PropertyGetRevert(StringName property)
-		=> property.ToString() switch
-		{
-			nameof(AnimationPlayer) => Variant.NULL,
-			nameof(Animation) => "",
-			nameof(Marker) => "",
-			_ => Variant.NULL,
-		};
 	public override bool Test(IActivity? activity)
-		=> (this.AnimationPlayer?.CurrentAnimationPosition ?? 0d)
+		=> (this.AnimationPlayerObject?.CurrentAnimationPosition ?? 0d)
 				>= this.MarkerTime - Mathf.Epsilon;
 }
