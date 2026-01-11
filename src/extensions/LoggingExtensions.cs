@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 namespace Raele.GodotUtils.Extensions;
@@ -34,7 +35,8 @@ public static class LoggingExtensions
 		=> string.Join(
 				" ",
 				[
-					Time.GetTimeStringFromSystem(),
+					DateTime.Now.ToString("HH:mm:ss.fff"),
+					$"#{Engine.GetPhysicsFrames():N0}",
 					"by",
 					$"\"{subject.GetPath().ToString().TrimEnd(subject.Name)}{subject.Name.ToString().BBCColor(ColorName.Gray)}\""
 				]
