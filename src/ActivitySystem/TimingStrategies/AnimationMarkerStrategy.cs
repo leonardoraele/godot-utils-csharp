@@ -64,7 +64,7 @@ public partial class AnimationMarkerStrategy : TimingStrategy
 				{
 					this.ResourceLocalToScene = true;
 					property["usage"] = (long) PropertyUsageFlags.Default | (long) PropertyUsageFlags.ReadOnly;
-					property["info"] = $"{nameof(AnimationMarkerStrategy)} must be local to scene because it references an {nameof(AnimationPlayer)} node in the scene.";
+					property["info"] = $"{nameof(AnimationMarkerStrategy).BBCCode()}.{Resource.PropertyName.ResourceLocalToScene.ToString().BBCCode()} must be checked because it references an {nameof(AnimationPlayer).BBCCode()} node in the scene.";
 				}
 				break;
 		}
