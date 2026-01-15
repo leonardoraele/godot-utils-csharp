@@ -9,13 +9,13 @@
     <CSharpierIgnore>true</CSharpierIgnore>
   </PropertyGroup>
   <PropertyGroup>
-    <PackageId>RaeleGodotUtilsCSharp</PackageId>
+    <PackageId>RaeleUtils</PackageId>
     <Version>0.1.0</Version>
     <Authors>Leonardo Raele</Authors>
     <Company>Raele</Company>
     <Description>A collection of C# utilities for Godot Engine.</Description>
     <PackageTags>Godot;CSharp;Util;Utilities</PackageTags>
-    <RepositoryUrl>https://github.com/leonardoraele/godot-utils-csharp</RepositoryUrl>
+    <RepositoryUrl>https://github.com/leonardoraele/godot-raele-kit</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>

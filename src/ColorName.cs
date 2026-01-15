@@ -1,3 +1,5 @@
+namespace Raele.GodotUtils;
+
 public static class ColorName
 {
 	public static string AliceBlue = "aliceblue";

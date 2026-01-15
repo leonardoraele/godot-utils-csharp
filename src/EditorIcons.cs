@@ -1,5 +1,7 @@
 using Godot;
 
+namespace Raele.GodotUtils;
+
 /// <summary>
 /// Icons repository: https://github.com/godotengine/godot/tree/master/editor/icons
 /// Icon browser websites:
