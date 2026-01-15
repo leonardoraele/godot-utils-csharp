@@ -22,8 +22,17 @@ public partial class Activity : Node, IActivity
 	[Export(PropertyHint.GroupEnable)] public bool ProcessModeManagedEnabled
 		{ get; set { field = value; this.NotifyPropertyListChanged(); } }
 		= true;
-	[Export] public ProcessModeEnum ProcessModeWhenActive = ProcessModeEnum.Inherit;
-	[Export] public ProcessModeEnum ProcessModeWhenInactive = ProcessModeEnum.Disabled;
+	[Export] public ProcessModeEnum ProcessModeWhenActive
+		{ get; set { field = value; this.RefreshProcessMode(); } }
+		= ProcessModeEnum.Inherit;
+	[Export] public ProcessModeEnum ProcessModeWhenInactive
+		{ get; set { field = value; this.RefreshProcessMode(); } }
+		= ProcessModeEnum.Disabled;
+
+	[ExportGroup("Debug", "Debug")]
+	[Export] public bool DebugInactiveInEditor
+		{ get; set { field = value; this.RefreshProcessMode(); } }
+		= false;
 
 	//==================================================================================================================
 		#endregion
@@ -96,7 +105,6 @@ public partial class Activity : Node, IActivity
 			&& this.ProcessModeManagedEnabled
 		)
 		{
-			this.ProcessMode = ProcessModeEnum.Inherit;
 			property["usage"] = (long) PropertyUsageFlags.Editor | (long) PropertyUsageFlags.ReadOnly;
 			property["comment"] = $"The {Node.PropertyName.ProcessMode} property is managed by the {nameof(Activity)} script.";
 		}
@@ -217,8 +225,7 @@ public partial class Activity : Node, IActivity
 			this.CallDeferred(MethodName.OnAfterStarted, mode, argument);
 		this.IsActive = true;
 		this.ActiveTimeSpan = TimeSpan.Zero;
-		if (this.ProcessModeManagedEnabled)
-			this.ProcessMode = this.ProcessModeWhenActive;
+		this.RefreshProcessMode();
 	}
 
 	private void OnAfterStarted(string mode, Variant argument)
@@ -258,14 +265,25 @@ public partial class Activity : Node, IActivity
 			this.CallDeferred(MethodName.OnAfterFinished, reason, details);
 		this.IsActive = false;
 		this.ActiveTimeSpan = TimeSpan.Zero;
-		if (this.ProcessModeManagedEnabled)
-			this.ProcessMode = this.ProcessModeWhenInactive;
+		this.RefreshProcessMode();
 	}
 
 	private void OnAfterFinished(string reason, Variant details)
 	{
 		this._ActivityFinished(reason, details);
 		this.EmitSignalFinished(reason, details);
+	}
+	private void RefreshProcessMode()
+	{
+		if (!this.ProcessModeManagedEnabled)
+			return;
+		this.ProcessMode = Engine.IsEditorHint()
+			? this.DebugInactiveInEditor
+				? this.ProcessModeWhenInactive
+				: this.ProcessModeWhenActive
+			: this.IsActive
+				? this.ProcessModeWhenActive
+				: this.ProcessModeWhenInactive;
 	}
 
 	//==================================================================================================================
