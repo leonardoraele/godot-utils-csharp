@@ -2,7 +2,7 @@ using Godot;
 
 namespace Raele.GodotUtils.Extensions;
 
-public static class Vector2ExtensionMethods
+public static class GeometryExtensionMethods
 {
 	extension(Vector2 self)
 	{
@@ -23,6 +23,26 @@ public static class Vector2ExtensionMethods
 		{
 			x = self.X;
 			y = self.Y;
+		}
+	}
+
+	extension(Vector3 self)
+	{
+		public void Deconstruct(out float x, out float y, out float z)
+		{
+			x = self.X;
+			y = self.Y;
+			z = self.Z;
+		}
+	}
+
+	extension(Vector3I self)
+	{
+		public void Deconstruct(out int x, out int y, out int z)
+		{
+			x = self.X;
+			y = self.Y;
+			z = self.Z;
 		}
 	}
 }

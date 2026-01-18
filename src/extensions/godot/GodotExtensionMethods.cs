@@ -28,7 +28,7 @@ public static class GodotExtensionMethods
 			}
 			return godotDict;
 		}
-		public Godot.Collections.Dictionary<TKey, TValue> ToGodotDictionaryKV()
+		public Godot.Collections.Dictionary<TKey, TValue> ToGodotDictionaryT()
 		{
 			Godot.Collections.Dictionary<TKey, TValue> godotDict = new();
 			foreach (KeyValuePair<TKey, TValue> pair in dictionary)
@@ -37,5 +37,14 @@ public static class GodotExtensionMethods
 			}
 			return godotDict;
 		}
+	}
+
+	extension<[MustBeVariant] TKey, [MustBeVariant] TValue>(IEnumerable<KeyValuePair<TKey, TValue>> self) where TKey : notnull
+	{
+		public Godot.Collections.Dictionary ToGodotDictionary()
+			=> self.ToDictionary().ToGodotDictionary();
+
+		public Godot.Collections.Dictionary<TKey, TValue> ToGodotDictionaryT()
+			=> self.ToDictionary().ToGodotDictionaryT();
 	}
 }
