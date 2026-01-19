@@ -3,7 +3,7 @@ using Godot;
 
 namespace Raele.GodotUtils.StateMachine;
 
-public partial class StateMachine<T> where T : StateMachine<T>.IState
+public partial class StateMachine<T> : GodotObject where T : StateMachine<T>.IState
 {
 	// -----------------------------------------------------------------------------------------------------------------
 	// STATICS
