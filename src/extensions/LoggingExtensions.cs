@@ -15,9 +15,14 @@ public static class LoggingExtensions
 				message,
 				$"[color=dim_gray]",
 				..details.Select(@object => $"\n ├ {@object}"),
-				$"\n └ {GetFrameString()} {GetTimeString()} @ {self.ToIdentityString()}"
+				$"\n └ {GetFrameString()} {GetTimeString()} @ {self.GetIdentityString()}"
 				// $"\n\t[hint={detailsObj.ToString().ToJsonString()}]{message}[/hint]"
 			]);
+
+		private string GetIdentityString()
+			=> self is Node node ? $"\"{node.GetPath()}\""
+				: self is Resource res ? $"{res.GetType().Name} \"{(!res.ResourceName.IsWhiteSpace() ? res.ResourceName : Path.GetFileName(res.ResourcePath))}\" {{{res.GetRid()}}}"
+				: self.GetType().Name;
 	}
 
 	private static readonly Color[] COLORS = Enumerable.Range(0, 8).Select(i => Color.FromHsv(i / 8f, 1f, .2f)).ToArray();

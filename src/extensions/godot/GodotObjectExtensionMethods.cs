@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using Godot;
 
 namespace Raele.GodotUtils.Extensions;
@@ -42,12 +41,43 @@ public static class GodotObjectExtensionMethods
 		// 	cancellationToken.Register(() => self.Disconnect(signal, callable));
 		// }
 
-		public void CallSafe(StringName methodName, params Variant[] args)
+		public Variant CallSafe(StringName methodName, params Variant[] args)
 		{
+			if (!self.IsInstanceValid())
+				return Variant.NULL;
 			try
-				{ self.Call(methodName, args); }
+				{ return self.Call(methodName, args); }
 			catch (Exception e)
-				{ GD.PushError(e); }
+			{
+				GD.PushError(e);
+				return Variant.NULL;
+			}
+		}
+
+		public T? CallSafe<[MustBeVariant] T>(T defaultReturn, StringName methodName, params Variant[] args)
+		{
+			if (!self.IsInstanceValid())
+				return defaultReturn;
+			try
+				{ return self.Call(methodName, args).As<T>(); }
+			catch (Exception e)
+			{
+				GD.PushError(e);
+				return defaultReturn;
+			}
+		}
+
+		public T? CallSafe<[MustBeVariant] T>(Func<T> defaultReturnFactory, StringName methodName, params Variant[] args)
+		{
+			if (!self.IsInstanceValid())
+				return defaultReturnFactory();
+			try
+				{ return self.Call(methodName, args).As<T>(); }
+			catch (Exception e)
+			{
+				GD.PushError(e);
+				return defaultReturnFactory();
+			}
 		}
 
 		public void CallDebouncedRealTime(TimeSpan delay, StringName methodName, params Variant[] args)
@@ -82,9 +112,7 @@ public static class GodotObjectExtensionMethods
 				{
 					timer.QueueFree();
 					if (self.IsInstanceValid())
-					{
 						self.Call(methodName, args);
-					}
 				};
 				Engine.GetSceneTree().Root.AddChild(timer);
 			}
@@ -125,10 +153,5 @@ public static class GodotObjectExtensionMethods
 				self.Call(methodName, args);
 			}
 		}
-
-		public string ToIdentityString()
-			=> self is Node node ? $"\"{node.GetPath()}\""
-				: self is Resource res ? $"{res.GetType().Name} \"{(!res.ResourceName.IsWhiteSpace() ? res.ResourceName : Path.GetFileName(res.ResourcePath))}\" {{{res.GetRid()}}}"
-				: self.GetType().Name;
 	}
 }
