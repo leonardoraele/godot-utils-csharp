@@ -98,10 +98,11 @@ public partial class ReadProperty : VariantSource
 				property["usage"] = (long) PropertyUsageFlags.Default | (long) PropertyUsageFlags.UpdateAllIfModified;
 				if (this.Property.IsWhiteSpace())
 					break;
-				Variant rawValue = this._GetValue();
-				if (rawValue.VariantType.IsConvertibleTo(this.Type, strict: this.StrictType))
+				Variant value = this._GetValue();
+				if (value.VariantType.IsConvertibleTo(this.Type, strict: this.StrictType))
 				{
-					Variant value = rawValue.As(this.Type);
+					if (this.Type != Variant.Type.Nil)
+						value = value.As(this.Type);
 					property["comment"] = $"Current value: {Json.Stringify(value).BBCCode()} ({value.VariantType}).";
 				}
 				else

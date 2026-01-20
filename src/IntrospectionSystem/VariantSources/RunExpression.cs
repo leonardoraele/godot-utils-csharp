@@ -83,6 +83,11 @@ public partial class RunExpression : VariantSource
 		base._ValidateProperty(property);
 		switch (property["name"].AsString())
 		{
+			case nameof(this.Context):
+				property["usage"] = (long) PropertyUsageFlags.Default
+					| (long) PropertyUsageFlags.UpdateAllIfModified
+					| (long) PropertyUsageFlags.NodePathFromSceneRoot;
+				break;
 			case nameof(this.Param):
 				property["usage"] = (long) PropertyUsageFlags.Default | (long) PropertyUsageFlags.NilIsVariant;
 				break;

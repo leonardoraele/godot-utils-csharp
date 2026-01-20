@@ -103,7 +103,12 @@ public abstract partial class VariantSource : Resource
 	}
 
 	public Variant GetValue()
-		=> this._GetValue().As(this.Type);
+	{
+		Variant value = this._GetValue();
+		return this.Type != Variant.Type.Nil
+			? value.As(this.Type)
+			: value;
+	}
 
 	public bool ReferencesSceneNode()
 		=> this._ReferencesSceneNode();

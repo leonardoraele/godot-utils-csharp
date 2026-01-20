@@ -116,7 +116,15 @@ public static class GodotObjectExtensionMethods
 				};
 				Engine.GetSceneTree().Root.AddChild(timer);
 			}
-			timer.Start(delaySeconds);
+			try
+			{
+				timer.Start(delaySeconds);
+			}
+			catch (Exception e)
+			{
+				GD.PushError(e);
+				GD.PushError("timer path: " + timer.GetPath());
+			}
 		}
 
 		public void CallThrottledRealTime(TimeSpan delay, StringName methodName, params Variant[] args)
