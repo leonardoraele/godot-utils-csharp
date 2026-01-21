@@ -104,10 +104,10 @@ public static class GodotObjectExtensionMethods
 			params Variant[] args
 		)
 		{
-			string metaProp = $"{nameof(Raele)}.{nameof(GodotUtils)}.{nameof(_CallDebounced)}";
-			Tween? tween = self.GetMeta(metaProp)
-				.AsGodotObject()
-				as Tween;
+			string metaProp = $"{nameof(Raele)}_{nameof(GodotUtils)}_{nameof(_CallDebounced)}";
+			Tween? tween = self.HasMeta(metaProp)
+				? self.GetMeta(metaProp).AsGodotObject() as Tween
+				: null;
 			tween?.Kill();
 			tween = self is Node node
 				? node.CreateTween()
@@ -150,10 +150,10 @@ public static class GodotObjectExtensionMethods
 			params Variant[] args
 		)
 		{
-			string metaProp = $"{nameof(Raele)}.{nameof(GodotUtils)}.{nameof(_CallDebounced)}";
-			Tween? tween = self.GetMeta(metaProp)
-				.AsGodotObject()
-				as Tween;
+			string metaProp = $"{nameof(Raele)}_{nameof(GodotUtils)}_{nameof(_CallDebounced)}";
+			Tween? tween = self.HasMeta(metaProp)
+				? self.GetMeta(metaProp).AsGodotObject() as Tween
+				: null;
 			if (tween?.IsValid() == true)
 				return;
 			tween = self is Node node
