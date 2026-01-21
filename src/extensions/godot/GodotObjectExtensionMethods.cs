@@ -9,9 +9,6 @@ public static class GodotObjectExtensionMethods
 	private const double DEFAULT_DEBOUNCE_DELAY_SECONDS = 0.200d;
 	private const double DEFAULT_THROTTLE_DELAY_SECONDS = 0.200d;
 
-	private static Dictionary<int, Tween> DebounceTweens = [];
-	private static Dictionary<int, Tween> ThrottleTweens = [];
-
 	extension(GodotObject self)
 	{
 		public bool IsInstanceValid() => GodotObject.IsInstanceValid(self);
@@ -107,28 +104,27 @@ public static class GodotObjectExtensionMethods
 			params Variant[] args
 		)
 		{
-			string timerName = $"_{nameof(_CallDebounced)}_{self.GetInstanceId()}_{methodName}";
-			Timer? timer = Engine.GetSceneTree().Root.GetNodeOrNull<Timer>(timerName);
-			if (timer == null)
-			{
-				timer = new Timer() { Name = timerName, OneShot = true, IgnoreTimeScale = ignoreTimeScale };
-				timer.Timeout += () =>
+			string metaProp = $"{nameof(Raele)}.{nameof(GodotUtils)}.{nameof(_CallDebounced)}";
+			Tween? tween = self.GetMeta(metaProp)
+				.AsGodotObject()
+				as Tween;
+			tween?.Kill();
+			tween = self is Node node
+				? node.CreateTween()
+				: Engine.GetSceneTree().CreateTween();
+			self.SetMeta(metaProp, tween);
+			tween.SetIgnoreTimeScale(ignoreTimeScale)
+				.SetProcessMode(Tween.TweenProcessMode.Physics)
+				.AddIntervalTweener(delaySeconds)
+				.AddCallbackTweener(Callable.From(() =>
 				{
-					timer.QueueFree();
+					tween.Kill();
 					if (self.IsInstanceValid())
+					{
+						self.RemoveMeta(metaProp);
 						self.Call(methodName, args);
-				};
-				Engine.GetSceneTree().Root.AddChild(timer);
-			}
-			try
-			{
-				timer.Start(delaySeconds);
-			}
-			catch (Exception e)
-			{
-				GD.PushError(e);
-				GD.PushError("timer path: " + timer.GetPath());
-			}
+					}
+				}));
 		}
 
 		public void CallThrottledRealTime(TimeSpan delay, StringName methodName, params Variant[] args)
@@ -154,16 +150,26 @@ public static class GodotObjectExtensionMethods
 			params Variant[] args
 		)
 		{
-			string timerName = $"_{nameof(_CallThrottled)}_{self.GetInstanceId()}_{methodName}";
-			Timer? timer = Engine.GetSceneTree().Root.GetNodeOrNull<Timer>(timerName);
-			if (timer == null)
-			{
-				timer = new Timer() { Name = timerName, OneShot = true, IgnoreTimeScale = ignoreTimeScale };
-				timer.Timeout += timer.QueueFree;
-				Engine.GetSceneTree().Root.AddChild(timer);
-				timer.Start(delaySeconds);
-				self.Call(methodName, args);
-			}
+			string metaProp = $"{nameof(Raele)}.{nameof(GodotUtils)}.{nameof(_CallDebounced)}";
+			Tween? tween = self.GetMeta(metaProp)
+				.AsGodotObject()
+				as Tween;
+			if (tween?.IsValid() == true)
+				return;
+			tween = self is Node node
+				? node.CreateTween()
+				: Engine.GetSceneTree().CreateTween();
+			self.SetMeta(metaProp, tween);
+			tween.SetIgnoreTimeScale(ignoreTimeScale)
+				.SetProcessMode(Tween.TweenProcessMode.Physics)
+				.AddIntervalTweener(delaySeconds)
+				.AddCallbackTweener(Callable.From(() =>
+				{
+					tween.Kill();
+					if (self.IsInstanceValid())
+						self.RemoveMeta(metaProp);
+				}));
+			self.Call(methodName, args);
 		}
 	}
 }
