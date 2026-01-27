@@ -69,6 +69,15 @@ public static class IEnumerableExtensionMethods
 			return index != -1;
 		}
 
+		public IEnumerable<T> AppendIf(bool condition, T element)
+			=> condition ? self.Append(element) : self;
+
+		public IEnumerable<T> PrependIf(bool condition, T element)
+			=> condition ? self.Prepend(element) : self;
+
+		public IEnumerable<T> ConcatIf(bool condition, IEnumerable<T> elements)
+			=> condition ? self.Concat(elements) : self;
+
 		public string JoinIntoString(string separator) => string.Join(separator, self);
 
 		public void Deconstruct(out T? el1)

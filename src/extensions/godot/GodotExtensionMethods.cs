@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Godot;
 
 namespace Raele.GodotUtils.Extensions;
@@ -9,6 +10,11 @@ public static class GodotExtensionMethods
 	extension(Engine)
 	{
 		public static SceneTree GetSceneTree() => (SceneTree) Engine.GetMainLoop();
+	}
+
+	extension (SignalAwaiter self)
+	{
+		public async Task ToTask() => await self;
 	}
 
 	extension<[MustBeVariant] T>(IEnumerable<T> sequence)
