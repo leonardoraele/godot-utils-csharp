@@ -139,7 +139,7 @@ public partial class MessageBus : Node
 		Callable.From(_DispatchCommand).CallDeferred();
 		void _DispatchCommand()
 		{
-			this.CallSafe(GodotObject.MethodName.EmitSignal, SignalName.BeforeCommandPublished, command);
+			this.CallSafe(GodotObject.MethodName.EmitSignal, [SignalName.BeforeCommandPublished, command]);
 			if (command.Cancelled)
 				return;
 			this.CallDeferred(GodotObject.MethodName.EmitSignal, SignalName.CommandPublished, command);

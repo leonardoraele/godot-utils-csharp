@@ -56,12 +56,12 @@ public static class GodotObjectExtensionMethods
 		// 	cancellationToken.Register(() => self.Disconnect(signal, callable));
 		// }
 
-		public Variant CallSafe(StringName methodName, params Variant[] args)
+		public Variant CallSafe(StringName methodName, Variant[]? args = null)
 		{
 			if (!self.IsInstanceValid())
 				return Variant.NULL;
 			try
-				{ return self.Call(methodName, args); }
+				{ return self.Call(methodName, args ?? []); }
 			catch (Exception e)
 			{
 				GD.PushError(e);
@@ -69,12 +69,12 @@ public static class GodotObjectExtensionMethods
 			}
 		}
 
-		public T? CallSafe<[MustBeVariant] T>(T defaultReturn, StringName methodName, params Variant[] args)
+		public T? CallSafe<[MustBeVariant] T>(T defaultReturn, StringName methodName, Variant[]? args = null)
 		{
 			if (!self.IsInstanceValid())
 				return defaultReturn;
 			try
-				{ return self.Call(methodName, args).As<T>(); }
+				{ return self.Call(methodName, args ?? []).As<T>(); }
 			catch (Exception e)
 			{
 				GD.PushError(e);
@@ -82,12 +82,12 @@ public static class GodotObjectExtensionMethods
 			}
 		}
 
-		public T? CallSafe<[MustBeVariant] T>(Func<T> defaultReturnFactory, StringName methodName, params Variant[] args)
+		public T? CallSafe<[MustBeVariant] T>(Func<T> defaultReturnFactory, StringName methodName, Variant[]? args = null)
 		{
 			if (!self.IsInstanceValid())
 				return defaultReturnFactory();
 			try
-				{ return self.Call(methodName, args).As<T>(); }
+				{ return self.Call(methodName, args ?? []).As<T>(); }
 			catch (Exception e)
 			{
 				GD.PushError(e);

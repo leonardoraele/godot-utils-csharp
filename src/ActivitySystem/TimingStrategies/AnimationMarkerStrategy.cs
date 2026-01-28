@@ -12,7 +12,7 @@ public partial class AnimationMarkerStrategy : TimingStrategy
 	[Export] public string Marker = "";
 
 	private AnimationPlayer? AnimationPlayerObject
-		=> this.CallSafe(null as Node, Resource.MethodName.GetLocalScene)?.GetNodeOrNull<AnimationPlayer>(this.AnimationPlayer);
+		=> this.CallSafe(() => null as Node, Resource.MethodName.GetLocalScene)?.GetNodeOrNull<AnimationPlayer>(this.AnimationPlayer);
 	private Animation? AnimationObject
 	{
 		get
