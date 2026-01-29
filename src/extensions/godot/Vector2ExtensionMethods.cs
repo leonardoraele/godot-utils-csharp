@@ -17,6 +17,9 @@ public static class Vector2ExtensionMethods
 			=> other.IsZeroApprox()
 				? self
 				: self.Rotated(self.AngleTo(other).Clamped(-delta.AsFloat(), delta.AsFloat()));
+		public Vector2 RotateAndScaleToward(Vector2 other, Radians angleDelta, float lengthDelta)
+			=> self.RotateToward(other, angleDelta).Normalized()
+				* self.Length().MoveToward(other.Length(), lengthDelta);
 
 		public Vector2I AsVector2I()
 			=> new Vector2I((int) self.X, (int) self.Y);

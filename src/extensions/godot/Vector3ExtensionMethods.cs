@@ -12,6 +12,14 @@ public static class Vector3ExtensionMethods
 			=> self.Dot(other)
 				is > 1 - Mathf.Epsilon
 				or < -1 + Mathf.Epsilon;
+		/// <summary>
+		/// Angle between the vector and a plane normal.
+		///
+		/// If the vector is on the negative side of the plane, (i.e. the side opposite to the one to which the plane's
+		/// normal points) the returned angle is negative.
+		/// </summary>
+		public Radians SignedAngleTo(Plane plane)
+			=> Math.PI / 2 - self.AngleTo(plane.Normal);
 		public Vector3 MoveToward(Vector3 other, Radians delta)
 			=> self + (other - self).LimitLength(delta);
 		public Vector3 RotateToward(Vector3 other, Radians delta)
@@ -39,6 +47,16 @@ public static class Vector3ExtensionMethods
 				: cross.Normalized();
 			return self.Rotated(axis, Math.Min(delta, angle));
 		}
+
+		/// <summary>
+		/// Rotates and scales a vector toward another vector.
+		/// </summary>
+		public Vector3 RotateAndScaleToward(Vector3 other, Radians angleDelta, float lengthDelta)
+			=> self.RotateToward(other, angleDelta).Normalized()
+				* self.Length().MoveToward(other.Length(), lengthDelta);
+
+		public Vector3 Project(Plane plane)
+			=> plane.Project(self);
 
 		public void Deconstruct(out float x, out float y, out float z)
 		{

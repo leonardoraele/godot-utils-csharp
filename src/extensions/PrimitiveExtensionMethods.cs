@@ -20,5 +20,9 @@ public static class PrimitiveExtensionMethods
 	{
 		public T Abs()
 			=> T.Abs(self);
+		public T MoveToward(T target, T delta)
+			=> self < target ? T.Min(self + delta, target)
+				: self > target ? T.Max(self - delta, target)
+				: target;
 	}
 }
