@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using Godot;
-using Godot.NativeInterop;
 
 namespace Raele.GodotUtils.Extensions;
 
