@@ -122,12 +122,12 @@ public partial class ExpressionMapper : ValueMapper
 		if (this.Interpreter == null || Engine.IsEditorHint())
 		{
 			this.Interpreter = new();
-			this.Interpreter.Parse(this.Expression, this.Variables.Keys.Select(key => key.AsString()).ToArray());
+			this.Interpreter.Parse(this.Expression, this.Variables.Keys.Select(key => key.AsString()).Append("value").ToArray());
 		}
 		Node? context = this.Context != null && this.ResourceLocalToScene
 			? this.GetLocalScene().GetNode(this.Context)
 			: null;
-		Variant result = this.Interpreter.Execute(this.Variables.Values.ToGodotArray(), context);
+		Variant result = this.Interpreter.Execute(this.Variables.Values.Append(value).ToGodotArray(), context);
 		if (this.Interpreter.HasExecuteFailed())
 		{
 			GD.PushError($"Failed to execute expression. Cause: Execution errored. Error: {this.Interpreter.GetErrorText()}");
