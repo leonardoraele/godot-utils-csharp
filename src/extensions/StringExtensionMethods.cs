@@ -56,6 +56,7 @@ public static class StringExtensionMethods
 		public bool IsNullOrWhiteSpace() => string.IsNullOrWhiteSpace(self);
 		public static bool IsNotNullOrEmpty([NotNullWhen(true)] string? str)
 			=> !string.IsNullOrEmpty(str);
+		[Obsolete("Use `str?.IsWhiteSpace() == false`")]
 		public static bool IsNotNullOrWhiteSpace([NotNullWhen(true)] string? str)
 			=> !string.IsNullOrWhiteSpace(str);
 	}

@@ -8,57 +8,68 @@ namespace Raele.GodotUtils.Nodes;
 public partial class PropertyPolling : Node
 {
 	//==================================================================================================================
-		#region STATICS
+	// STATICS
 	//==================================================================================================================
 
 	// public static readonly string MyConstant = "";
 
 	//==================================================================================================================
-		#endregion
-	//==================================================================================================================
-		#region EXPORTS
+	// EXPORTS
 	//==================================================================================================================
 
-	[Export] public string ParentProperty
+	[Export] public Node? TargetNode
+		{ get => field ?? this.GetParent(); set { field = value; this.NotifyPropertyListChanged(); this.UpdateConfigurationWarnings(); } }
+	[Export] public string TargetProperty
 		{ get; set { field = value; this.UpdateConfigurationWarnings(); } }
 		= "";
-	[Export] public Node? ReferenceNode
+	[Export] public Node? SourceNode
 		{ get; set { field = value; this.NotifyPropertyListChanged(); this.UpdateConfigurationWarnings(); } }
-	[Export] public string ReferenceProperty
+	[Export] public string SourceProperty
 		{ get; set { field = value; this.UpdateConfigurationWarnings(); } }
 		= "";
-	[Export] public UpdateModeEnum UpdateMode = UpdateModeEnum.IdleFrames;
 
-	[ExportGroup("Additional Options")]
-	[Export] public ValueMapper? ValueMapper;
+	[ExportGroup("Use Expression")]
+	[Export(PropertyHint.GroupEnable)] public bool ExpressionEnabled
+		{ get; set { field = value; this.NotifyPropertyListChanged(); } }
+		= false;
+	[Export(PropertyHint.Expression)] public string Expression = "";
+	[Export] public Godot.Collections.Dictionary<string, Variant> Variables = [];
+
+	[ExportGroup("Options")]
+	[Export] public UpdateModeEnum UpdateMode = UpdateModeEnum.IdleFrames;
 
 	[ExportGroup("Debug")]
 	[Export] public bool RunInEditor = false;
 
 	//==================================================================================================================
-		#endregion
+	// FIELDS
 	//==================================================================================================================
-		#region FIELDS
+
+	private Expression ExpressionInterpreter
+	{
+		get
+		{
+			if (field == null || Engine.IsEditorHint())
+			{
+				field = new();
+				field.Parse(this.Expression, this.Variables.Keys.Append("value").ToArray());
+			}
+			return field;
+		}
+	}
+
+	//==================================================================================================================
+	// COMPUTED PROPERTIES
 	//==================================================================================================================
 
 	//==================================================================================================================
-		#endregion
-	//==================================================================================================================
-		#region COMPUTED PROPERTIES
-	//==================================================================================================================
-
-	//==================================================================================================================
-		#endregion
-	//==================================================================================================================
-		#region EVENTS & SIGNALS
+	// EVENTS & SIGNALS
 	//==================================================================================================================
 
 	// [Signal] public delegate void EventHandler();
 
 	//==================================================================================================================
-		#endregion
-	//==================================================================================================================
-		#region INTERNAL TYPES
+	// INTERNAL TYPES
 	//==================================================================================================================
 
 	public enum UpdateModeEnum : sbyte {
@@ -68,16 +79,18 @@ public partial class PropertyPolling : Node
 	}
 
 	//==================================================================================================================
-		#endregion
-	//==================================================================================================================
-		#region OVERRIDES & VIRTUALS
+	// OVERRIDES & VIRTUALS
 	//==================================================================================================================
 
 	public override string[] _GetConfigurationWarnings()
 		=> (base._GetConfigurationWarnings() ?? [])
-			.AppendIf(this.ParentProperty.IsNullOrWhiteSpace(), "ParentProperty is empty.")
-			.AppendIf(this.ReferenceNode == null, "ReferenceNode is null.")
-			.AppendIf(this.ReferenceProperty.IsNullOrWhiteSpace(), "ReferenceProperty is empty.")
+			.AppendIf(this.TargetNode == null, $"{nameof(TargetNode)} is null.")
+			.AppendIf(string.IsNullOrWhiteSpace(this.TargetProperty), $"{nameof(TargetProperty)} is empty.")
+			.AppendIf(this.SourceNode == null, $"{nameof(SourceNode)} is null.")
+			.AppendIf(
+				!this.ExpressionEnabled && string.IsNullOrWhiteSpace(this.SourceProperty),
+				$"{nameof(SourceProperty)} is empty."
+			)
 			.ToArray();
 
 	public override void _ValidateProperty(Godot.Collections.Dictionary property)
@@ -85,35 +98,41 @@ public partial class PropertyPolling : Node
 		base._ValidateProperty(property);
 		switch (property["name"].AsString())
 		{
-			case nameof(this.ParentProperty): {
-				if (this.GetParent() is not Node parent)
+			case nameof(this.TargetProperty): {
+				if (this.TargetNode == null)
 					return;
-				string options = parent.GetPropertyList()
+				string options = this.TargetNode.GetPropertyList()
 					.Where(prop => prop["usage"].AsPropertyUsageFlags() != PropertyUsageFlags.Group
 						&& prop["usage"].AsPropertyUsageFlags() != PropertyUsageFlags.Subgroup
 						&& prop["usage"].AsPropertyUsageFlags() != PropertyUsageFlags.Category
 					)
 					.Select(prop => prop["name"].AsString())
-					.ToArray()
-					.SortInplace(string.Compare)
+					.Order()
 					.JoinIntoString(",");
 				property["hint"] = (long) PropertyHint.EnumSuggestion;
 				property["hint_string"] = options;
 				break;
 			}
-			case nameof(this.ReferenceProperty): {
-				if (this.ReferenceNode == null)
+			case nameof(this.SourceProperty): {
+				if (this.ExpressionEnabled)
+				{
+					property["usage"] = (long) PropertyUsageFlags.None;
 					return;
-				Variant.Type type = this.GetParentPropertyType();
-				string options = this.ReferenceNode.GetPropertyList()
+				}
+				if (this.SourceNode == null)
+					return;
+				Variant.Type targetType = this.TargetNode?.GetPropertyList()
+					.FirstOrDefault(prop => prop["name"].AsString() == this.TargetProperty)
+					?["type"].AsVariantType()
+					?? Variant.Type.Nil;
+				string options = this.SourceNode.GetPropertyList()
 					.Where(prop => prop["usage"].AsPropertyUsageFlags() != PropertyUsageFlags.Group
 						&& prop["usage"].AsPropertyUsageFlags() != PropertyUsageFlags.Subgroup
 						&& prop["usage"].AsPropertyUsageFlags() != PropertyUsageFlags.Category
 					)
-					.Where(prop => prop["type"].AsVariantType().IsConvertibleTo(type))
+					.Where(prop => prop["type"].AsVariantType().IsConvertibleTo(targetType))
 					.Select(prop => prop["name"].AsString())
-					.ToArray()
-					.SortInplace(string.Compare)
+					.Order()
 					.JoinIntoString(",");
 				property["hint"] = (long) PropertyHint.EnumSuggestion;
 				property["hint_string"] = options;
@@ -137,30 +156,23 @@ public partial class PropertyPolling : Node
 	}
 
 	//==================================================================================================================
-		#endregion
+	// METHODS
 	//==================================================================================================================
-		#region METHODS
-	//==================================================================================================================
-
-	private Variant.Type GetParentPropertyType()
-		=> this.GetParent()
-			?.GetPropertyList()
-			.FirstOrDefault(prop => prop["name"].AsString() == this.ParentProperty)
-			?["type"].AsVariantType()
-			?? Variant.Type.Nil;
 
 	public void UpdateProperty()
 	{
 		if (Engine.IsEditorHint() && !this.RunInEditor)
 			return;
-		Variant? polledVariant = this.ReferenceNode?.GetIndexed(this.ReferenceProperty);
-		if (!polledVariant.HasValue)
-			return;
-		polledVariant = this.ValueMapper?.MapValue(polledVariant.Value) ?? polledVariant.Value;
-		this.GetParent()?.SetIndexed(this.ParentProperty, polledVariant.Value);
+		Variant value = this.SourceNode?.GetIndexed(this.SourceProperty) ?? new Variant();
+		if (this.ExpressionEnabled)
+		{
+			value = this.ExpressionInterpreter.Execute(
+				this.Variables.Values.Append(value).ToGodotArray(),
+				this.SourceNode
+			);
+			if (this.ExpressionInterpreter.HasExecuteFailed())
+				return;
+		}
+		this.TargetNode?.SetIndexed(this.TargetProperty, value);
 	}
-
-	//==================================================================================================================
-		#endregion
-	//==================================================================================================================
 }
